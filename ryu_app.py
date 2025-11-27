@@ -30,8 +30,14 @@ class EnergyEfficientSDN(app_manager.RyuApp):
 
         # AI Model Initialization
         self.predictor = TrafficPredictor(look_back=3, n_features=self.n_switches)
-        # For demonstration, we initialize a dummy model.
-        # In production: self.predictor.model = load_model('path/to/model')
+
+        # Load pre-trained model
+        model_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'traffic_model')
+        try:
+            self.predictor.load_model(model_path)
+            self.logger.info("Successfully loaded AI model from %s", model_path)
+        except Exception as e:
+            self.logger.warning("Could not load AI model: %s. Using untrained model.", e)
 
         self.traffic_data = {} # Store traffic stats per switch
 
@@ -158,10 +164,3 @@ class EnergyEfficientSDN(app_manager.RyuApp):
         out = parser.OFPPacketOut(datapath=datapath, buffer_id=msg.buffer_id,
                                   in_port=in_port, actions=actions, data=data)
         datapath.send_msg(out)
-
-    def __init__(self, *args, **kwargs):
-        super(EnergyEfficientSDN, self).__init__(*args, **kwargs)
-        self.mac_to_port = {}
-        self.datapaths = {}
-        self.monitor_thread = hub.spawn(self._monitor)
-        self.predictor = TrafficPredictor(look_back=3, n_features=6)

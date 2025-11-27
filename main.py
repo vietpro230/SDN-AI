@@ -16,6 +16,10 @@ def main():
     predictor = TrafficPredictor(look_back=3, n_features=len(switch_ids))
     predictor.train(df)
 
+    # Save the trained model
+    print("Saving trained model...")
+    predictor.save_model('src/traffic_model')
+
     print("Starting simulation...")
     # Capacity: Set high enough so we don't always saturate, but low enough to matter.
     # Max load in sample data was ~1.8GB/s (1.8e9).

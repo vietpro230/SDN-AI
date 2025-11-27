@@ -1,11 +1,13 @@
 import numpy as np
 import pandas as pd
+import joblib
+import os
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
 
 try:
     import tensorflow as tf
-    from tensorflow.keras.models import Sequential
+    from tensorflow.keras.models import Sequential, load_model as tf_load_model
     from tensorflow.keras.layers import Dense, LSTM
     HAS_TF = True
 except ImportError:
@@ -97,3 +99,44 @@ class TrafficPredictor:
         # Inverse scale output
         prediction = self.scaler.inverse_transform(prediction_scaled)
         return prediction[0]
+
+    def save_model(self, path_prefix):
+        """
+        Saves the trained model and scaler to disk.
+        path_prefix: The base path (without extension) to save files.
+        """
+        if self.model is None:
+            raise Exception("Model not trained yet.")
+
+        # Save Scaler
+        joblib.dump(self.scaler, f"{path_prefix}_scaler.pkl")
+
+        # Save Model
+        if HAS_TF and isinstance(self.model, Sequential):
+            self.model.save(f"{path_prefix}_model.h5")
+            print(f"Model saved to {path_prefix}_model.h5")
+        else:
+            joblib.dump(self.model, f"{path_prefix}_model.pkl")
+            print(f"Model saved to {path_prefix}_model.pkl")
+
+    def load_model(self, path_prefix):
+        """
+        Loads the trained model and scaler from disk.
+        path_prefix: The base path (without extension) to load files from.
+        """
+        # Load Scaler
+        scaler_path = f"{path_prefix}_scaler.pkl"
+        if os.path.exists(scaler_path):
+            self.scaler = joblib.load(scaler_path)
+        else:
+            raise FileNotFoundError(f"Scaler file not found: {scaler_path}")
+
+        # Load Model
+        if HAS_TF and os.path.exists(f"{path_prefix}_model.h5"):
+            self.model = tf_load_model(f"{path_prefix}_model.h5")
+            print(f"TensorFlow model loaded from {path_prefix}_model.h5")
+        elif os.path.exists(f"{path_prefix}_model.pkl"):
+            self.model = joblib.load(f"{path_prefix}_model.pkl")
+            print(f"Scikit-learn model loaded from {path_prefix}_model.pkl")
+        else:
+            raise FileNotFoundError(f"Model file not found at {path_prefix}_model.h5 or .pkl")
