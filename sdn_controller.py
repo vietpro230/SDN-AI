@@ -3,7 +3,11 @@ import networkx as nx
 class SDNController:
     def __init__(self, switch_ids, power_active=100, power_sleep=10, capacity_per_switch=1000000):
         """
-        Initializes the SDN Controller with infrastructure knowledge.
+        Initializes the SDN Controller (Simulating Ryu Controller logic).
+
+        This controller implements Dynamic Resource Allocation to optimize energy efficiency
+        in a Data Center network. It uses AI-predicted traffic loads to make decisions
+        about putting switches into sleep mode while maintaining network connectivity.
         """
         self.switches = switch_ids
         self.power_active = power_active
@@ -62,6 +66,11 @@ class SDNController:
             if load < (0.1 * self.capacity):
                 # Temporarily remove to check connectivity
                 current_active.remove(switch_id)
+
+                if len(current_active) == 0:
+                    current_active.add(switch_id)
+                    continue
+
                 subgraph = self.topology.subgraph(list(current_active))
 
                 # Constraint: Network must remain connected

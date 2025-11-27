@@ -16,6 +16,11 @@ except ImportError:
 class TrafficPredictor:
     def __init__(self, look_back=5, n_features=1):
         """
+        AI Model for Traffic Prediction.
+
+        This model predicts future network traffic loads to enable the SDN Controller
+        to perform Energy Efficiency Optimization (Dynamic Resource Allocation).
+
         look_back: Number of past time steps to use for prediction.
         n_features: Number of switches (features) to predict.
         """
